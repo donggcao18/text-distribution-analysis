@@ -9,15 +9,16 @@ import torch
 import os
 import torch.nn as nn
 
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # GEMINI_MODEL = ['Gemini 2.0', 'Gemini 2.0 Flash-Lite', 'Gemini 1.5 Pro', 'Gemini 1.5 Flash']
 # OTHER_MODEL = ['DeepSeek V3', 'Llama-3.3-70B-Instruct-Turbo', "GPT-4o-mini"]
 GEMINI_MODEL = ['Gemini 2.0','Gemini 2.0 Flash-Lite', 'Gemini 1.5 Flash']
-OTHER_MODEL = ['GPT-4o-mini','Llama-3.3-70B-Instruct-Turbo']
-SAMPLE_SIZE = 2000
+OTHER_MODEL = ['GPT-4o-mini']
+SAMPLE_SIZE = 1000
 EMBEDDING_MODEL = "princeton-nlp/unsup-simcse-roberta-base"
 
 
-MODEL_PATH = os.path.join("model_45.pth", "model_45.pth")
+MODEL_PATH = os.path.join("model", "model_45.pth")
 if os.path.exists(MODEL_PATH):
     print(f"Loading model from {MODEL_PATH}")
     model_state = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
@@ -31,8 +32,11 @@ class TextEmbeddingModel(nn.Module):
         if output_hidden_states:
             self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True, output_hidden_states=True)
         else:
-            self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
-            self.model.load_state_dict(model_state, strict=False)
+            if model_state != None:
+                self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
+                self.model.load_state_dict(model_state, strict=False)
+            else:
+                self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def pooling(self, model_output, attention_mask, use_pooling='average',hidden_states=False):
@@ -128,13 +132,13 @@ def extract_embeddings(input_file, model_name):
 print("Processing Gemini models...")
 for model_name in GEMINI_MODEL:
     print(f"Extracting embeddings for {model_name}")
-    input_file = r"data/text/code_gen_data/abstract_gemini.jsonl"
+    input_file = r"text/model-specific/abstract_gemini.jsonl"
     embeddings[model_name] = extract_embeddings(input_file, model_name)
 
 print("Processing other models...")
 for model_name in OTHER_MODEL:
     print(f"Extracting embeddings for {model_name}")
-    input_file = r"data/text/labels/AI/abstract_arxiv_AI_en.jsonl"  
+    input_file = r"text/model-family/abstract_arxiv_AI_en.jsonl"  
     embeddings[model_name] = extract_embeddings(input_file, model_name)
 
 

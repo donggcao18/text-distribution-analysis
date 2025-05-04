@@ -39,7 +39,7 @@ def load_jsonl_data(file_path):
 def collect_sentence_lengths_by_model():
     """Collect sentence lengths for all models."""
     model_sentences = defaultdict(list)
-    gemini_data = load_jsonl_data('data/text/code_gen_data/gemini_specific.jsonl')
+    gemini_data = load_jsonl_data('text/model-specific/abstract_gemini.jsonl')
     for item in gemini_data:
         if 'content' in item and 'label_detailed' in item and item['label_detailed'] in GEMINI_MODEL:
             model = item['label_detailed']
@@ -48,7 +48,7 @@ def collect_sentence_lengths_by_model():
                 words = re.findall(r'\S+', sentence)
                 model_sentences[model].append(len(words))
     
-    other_data = load_jsonl_data('data/text/labels/AI/thesis_AI_en.jsonl')
+    other_data = load_jsonl_data('text/model-family/abstract_arxiv_AI_en.jsonl')
     for item in other_data:
         if 'content' in item and 'label_detailed' in item and item['label_detailed'] in OTHER_MODELS:
             model = item['label_detailed']
@@ -65,7 +65,7 @@ def collect_text_lengths_by_model():
         'word_counts': defaultdict(list),
         'char_counts': defaultdict(list)
     }
-    other_data = load_jsonl_data('data/text/labels/AI/abstract_arxiv_AI_en.jsonl')
+    other_data = load_jsonl_data('text/model-family/abstract_arxiv_AI_en.jsonl')
     for item in other_data:
         if 'content' in item and 'label_detailed' in item and item['label_detailed'] in OTHER_MODELS:
             model = item['label_detailed']
@@ -78,7 +78,7 @@ def collect_text_lengths_by_model():
             # Count characters in entire text
             model_text_lengths['char_counts'][model].append(len(text))
     # Process Gemini models
-    gemini_data = load_jsonl_data('data/text/code_gen_data/abstract_gemini.jsonl')
+    gemini_data = load_jsonl_data('text/model-specific/abstract_gemini.jsonl')
     for item in gemini_data:
         if 'content' in item and 'label_detailed' in item and item['label_detailed'] in GEMINI_MODEL:
             model = item['label_detailed']
@@ -94,6 +94,7 @@ def collect_text_lengths_by_model():
     
     
     return model_text_lengths
+
 def visualize_text_lengths(model_text_lengths):
     metrics = ['word_counts', 'char_counts']
     titles = ['Text Length Distribution (Words)', 'Text Length Distribution (Characters)']
@@ -112,13 +113,13 @@ def visualize_text_lengths(model_text_lengths):
         if metric == 'word_counts':
             bin_size = 10
             if max_value > 10:
-                bins = list(range(0, 500, bin_size)) + list(range(500, 1000, 100)) + list(range(1000, max_value + 200, 200))
+                bins = list(range(0, 500, bin_size)) 
             else:
                 bins = range(0, max_value + bin_size, bin_size)
         else:  # character counts
             bin_size = 30
             if max_value > 10:
-                bins = list(range(0, 2500, bin_size)) + list(range(2500, 5000, 500)) + list(range(5000, max_value + 1000, 1000))
+                bins = list(range(0, 3500, bin_size)) 
             else:
                 bins = range(0, max_value + bin_size, bin_size)
         
@@ -196,7 +197,7 @@ def create_combined_histogram(model_sentences):
     
     # Plot histogram for each model with complete distribution
     for model, color in ALL.items():
-        if model in model_sentences and model_sentences[model]:
+        if model in model_sentences:
             plt.hist(
                 model_sentences[model], 
                 bins=bins,
